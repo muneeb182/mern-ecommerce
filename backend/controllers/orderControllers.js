@@ -210,6 +210,31 @@ const createOrder = asyncHandler(async (req, res) => {
         res.status(500).json({error: error.message})
 
     }
-  })
+  });
 
-  export {createOrder , getAllOrders , getUserOrder , countTotalOrder , calculateTotalSale , calculateTotalSaleByDate , getOrderById ,approveOrder , markOrderAsDeliver}
+  const cancelOrder = asyncHandler(
+    async (req, res) => {
+      try {
+        const order = await Order.findById(req.params.id);
+    
+        if (!order) {
+          return res.status(404).json({ message: 'Order not found' });
+        }
+    
+        // Check if the order is already paid or delivered
+        if (order.isPaid || order.isDelivered) {
+          return res.status(400).json({ message: 'Order cannot be canceled as it has been paid or delivered' });
+        }
+    
+        // Update the status to 'canceled'
+        order.status = 'cancelled';
+        const updatedOrder = await order.save();
+        
+        res.json(updatedOrder);
+      } catch (error) {
+        res.status(500).json({ message: error.message });
+      }
+    }
+  )
+
+  export {createOrder , getAllOrders , getUserOrder , countTotalOrder , calculateTotalSale , calculateTotalSaleByDate , getOrderById ,approveOrder , markOrderAsDeliver , cancelOrder}
